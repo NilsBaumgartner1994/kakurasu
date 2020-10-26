@@ -316,7 +316,7 @@ class Kakurasu {
     }
 
     _getWeightForField(forRow=false, field){
-        let weightIndex = forRow ? field.x : field.y;
+        let weightIndex = forRow ? field.column : field.row;
         return this.getWeight(weightIndex);
     }
 

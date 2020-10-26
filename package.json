@@ -1,9 +1,15 @@
 {
   "name": "kakurasu",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Kakurasu also known as Takuzu https://en.wikipedia.org/wiki/Takuzu",
-  "main": "index.js",
+  "main": "./dist/my-library.js",
+  "types": "./dist/my-library.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "start": "webpack --watch",
+    "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,5 +27,8 @@
   "bugs": {
     "url": "https://github.com/NilsBaumgartner1994/kakurasu/issues"
   },
-  "homepage": "https://github.com/NilsBaumgartner1994/kakurasu#readme"
+  "homepage": "https://github.com/NilsBaumgartner1994/kakurasu#readme",
+  "dependencies": {
+    "webpack": "^5.2.0"
+  }
 }
