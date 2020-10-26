@@ -4,6 +4,9 @@
  * constraints are satisfied.
  */
 const _FIELD_KEY_SEPERATOR = "-";
+const STATUS_CLEAR = 0;
+const STATUS_ACTIVE = 1;
+const STATUS_FLAGGED = 2;
 
 class Kakurasu {
 
@@ -450,11 +453,6 @@ class Kakurasu {
     }
 
 }
-
-
-STATUS_CLEAR = 0;
-STATUS_ACTIVE = 1;
-STATUS_FLAGGED = 2;
 
 /**
  * A Field for the game Kakarasu
