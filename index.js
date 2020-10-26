@@ -3,9 +3,9 @@
  * constraint all activ cells in the specific row/column are summed up. The game is won, when all row and column
  * constraints are satisfied.
  */
-class Kakurasu {
+const _FIELD_KEY_SEPERATOR = "-";
 
-    static _FIELD_KEY_SEPERATOR = "-";
+class Kakurasu {
 
     /**
      * Constructor of a new game
@@ -49,7 +49,7 @@ class Kakurasu {
      */
     changeActiveStatus(row,column){
         let field = this.getField(row,column);
-        let status = field.isClear() ? KakurasuField.STATUS_ACTIVE : KakurasuField.STATUS_CLEAR;
+        let status = field.isClear() ? STATUS_ACTIVE : STATUS_CLEAR;
         return this._setFieldStatus(row,column,status);
     }
 
@@ -61,7 +61,7 @@ class Kakurasu {
      */
     changeFlagStatus(row,column){
         let field = this.getField(row,column);
-        let status = field.isClear() ? KakurasuField.STATUS_FLAGGED : KakurasuField.STATUS_CLEAR;
+        let status = field.isClear() ? STATUS_FLAGGED : STATUS_CLEAR;
         return this._setFieldStatus(row,column,status);
     }
 
@@ -126,7 +126,7 @@ class Kakurasu {
     }
 
     static _getFieldKey(row,column){
-        return row+Kakurasu._FIELD_KEY_SEPERATOR+column;
+        return row+_FIELD_KEY_SEPERATOR+column;
     }
 
     /**
@@ -245,7 +245,7 @@ class Kakurasu {
         let highestColumnKey = null;
         for(let i=0; i<fieldKeys.length; i++){
             let fieldKey = fieldKeys[i];
-            let split = fieldKey.split(Kakurasu._FIELD_KEY_SEPERATOR);
+            let split = fieldKey.split(_FIELD_KEY_SEPERATOR);
             let column = parseInt(split[0]);
             let row = parseInt(split[1]);
             if(!highestColumnKey || highestColumnKey<column){
@@ -451,20 +451,22 @@ class Kakurasu {
 
 }
 
+
+STATUS_CLEAR = 0;
+STATUS_ACTIVE = 1;
+STATUS_FLAGGED = 2;
+
 /**
  * A Field for the game Kakarasu
  */
-class KakurasuField {
 
-    static STATUS_CLEAR = 0;
-    static STATUS_ACTIVE = 1;
-    static STATUS_FLAGGED = 2;
+class KakurasuField {
 
     /**
      * Constructor for a field
      * @param state json [optional]
      */
-    constructor(state = {status: KakurasuField.STATUS_CLEAR}) {
+    constructor(state = {status: STATUS_CLEAR}) {
         this.state = state;
     }
 
@@ -481,7 +483,7 @@ class KakurasuField {
      * @returns {boolean} field is clear
      */
     isClear(){
-        return this.state.status === KakurasuField.STATUS_CLEAR;
+        return this.state.status === STATUS_CLEAR;
     }
 
     /**
@@ -489,7 +491,7 @@ class KakurasuField {
      * @returns {boolean} field is active
      */
     isActive(){
-        return this.state.status === KakurasuField.STATUS_ACTIVE;
+        return this.state.status === STATUS_ACTIVE;
     }
 
     /**
@@ -497,7 +499,7 @@ class KakurasuField {
      * @returns {boolean} field is flagged
      */
     isFlagged(){
-        return this.state.status === KakurasuField.STATUS_FLAGGED;
+        return this.state.status === STATUS_FLAGGED;
     }
 
     /**
@@ -555,11 +557,7 @@ class KakurasuField {
  */
 class KakurasuLevelGenerator {
 
-    static DIFFICULTY_EASY = "easy";
-    static DIFFICULTY_EASY = "medium";
-    static DIFFICULTY_EASY = "hard";
 
-    static DIFFICULTY_DEFAULT = KakurasuLevelGenerator.DIFFICULTY_EASY;
 
     //generate easy/medium/hard
     //generate AxB
@@ -572,7 +570,7 @@ class KakurasuLevelGenerator {
         config = config || {};
         config.rows = config.rows || 5;
         config.columns = config.columns || config.rows;
-        config.difficulty = config.difficulty || KakurasuLevelGenerator.DIFFICULTY_DEFAULT;
+        config.difficulty = config.difficulty || "medium";
         config.amountMinimumInRow = config.amountMinimumInRow || 1;
         config.amountMaximumInRow = config.amountMaximumInRow || config.rows/2;
         config.amountMinimumInColumn = config.amountMinimumInColumn || 1;
