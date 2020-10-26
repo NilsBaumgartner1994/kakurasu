@@ -1,0 +1,25 @@
+{
+  "name": "kakurasu",
+  "version": "1.0.0",
+  "description": "Kakurasu also known as Takuzu https://en.wikipedia.org/wiki/Takuzu",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NilsBaumgartner1994/kakurasu.git"
+  },
+  "keywords": [
+    "kakurasu",
+    "takuzu",
+    "puzzle",
+    "game"
+  ],
+  "author": "Nils Baumgartner",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/NilsBaumgartner1994/kakurasu/issues"
+  },
+  "homepage": "https://github.com/NilsBaumgartner1994/kakurasu#readme"
+}
