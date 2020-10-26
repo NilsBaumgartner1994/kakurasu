@@ -2,11 +2,7 @@
   "name": "kakurasu",
   "version": "1.0.4",
   "description": "Kakurasu also known as Takuzu https://en.wikipedia.org/wiki/Takuzu",
-  "main": "./dist/my-library.js",
-  "types": "./dist/my-library.d.ts",
-  "files": [
-    "dist"
-  ],
+  "main": "./lib/index.js",
   "scripts": {
     "build": "webpack"
   },
