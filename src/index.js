@@ -107,7 +107,7 @@ class Kakurasu {
 
     _applyMove(move){
         let field = this.getField(move.row,move.column);
-        if(field.isEditable()){
+        if(!field.isReadOnly()){
             field.setStatus(move.status);
             return true;
         }
@@ -214,6 +214,30 @@ class Kakurasu {
 
     _getAmountRowColumns(forRow){
         return forRow ? this.getAmountRows() : this.getAmountColumns();
+    }
+
+    /**
+     * Checks if row is satisfied
+     * @param row the index of the row
+     * @returns {boolean} satisfied row
+     */
+    isRowConstraintSatisfied(row){
+        return this._isRowColumnConstraintSatisfied(true, row);
+    }
+
+    /**
+     * Checks if column is satisfied
+     * @param column the index of the column
+     * @returns {boolean} satisfied column
+     */
+    isColumnConstraintSatisfied(column){
+        return this._isRowColumnConstraintSatisfied(false, column);
+    }
+
+    _isRowColumnConstraintSatisfied(forRow, index){
+        let solutionValue = this._getConstraintValue(forRow, index);
+        let fieldsValue = this._getRowColumnSumValue(forRow, index);
+        return solutionValue===fieldsValue;
     }
 
     _isRowColumnConstraintSatisfied(forRow, index){
@@ -504,16 +528,20 @@ class KakurasuField {
      * Set a field editable
      * @param editable is editable field
      */
-    setEditable(editable){
-        this.state.editable = editable;
+    setReadOnly(readOnly){
+        if(readOnly){
+            this.state.readOnly = true;
+        } else {
+            delete this.state.readOnly;
+        }
     }
 
     /**
      * Is a field editable
      * @returns {boolean} field is editable
      */
-    isEditable(){
-        return this.state.editable;
+    isReadOnly(){
+        return !!this.state.readOnly;
     }
 
     /**
@@ -696,11 +724,9 @@ class KakurasuLevelGenerator {
 /**
 console.log("Kakarasu Test");
 let game = new Kakurasu();
-let asJSON = game.asJSON();
-console.log(game.state.fields);
-console.log(game.getFieldsInRow(2));
-console.log(game.getConstraintValueForRow(2));
-game.print();
+console.log(game.getField(2,2));
+game.changeActiveStatus(2,2);
+console.log(game.getField(2,2));
  */
 
 module.exports.Kakurasu = Kakurasu;
