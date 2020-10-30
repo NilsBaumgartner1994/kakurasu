@@ -45,6 +45,36 @@ class Kakurasu {
     }
 
     /**
+     * Makes a move to set a field active
+     * @param row Index of the row
+     * @param column Index of the column
+     * @returns {boolean} move could be applied
+     */
+    setFieldActive(row, column){
+        return this._setFieldStatus(row,column,STATUS_ACTIVE);
+    }
+
+    /**
+     * Makes a move to set a field flagged
+     * @param row Index of the row
+     * @param column Index of the column
+     * @returns {boolean} move could be applied
+     */
+    setFieldFlagged(row,column){
+        return this._setFieldStatus(row,column,STATUS_FLAGGED);
+    }
+
+    /**
+     * Makes a move to set a field clear
+     * @param row Index of the row
+     * @param column Index of the column
+     * @returns {boolean} move could be applied
+     */
+    setFieldClear(row,column){
+        return this._setFieldStatus(row,column,STATUS_CLEAR);
+    }
+
+    /**
      * Changes/Flipps the active state of a field
      * @param row the row index, starting at 0
      * @param column the column index, starting at 0
@@ -52,8 +82,11 @@ class Kakurasu {
      */
     changeActiveStatus(row,column){
         let field = this.getField(row,column);
-        let status = field.isClear() ? STATUS_ACTIVE : STATUS_CLEAR;
-        return this._setFieldStatus(row,column,status);
+        if(field.isClear()){
+            return this.setFieldActive(row,column);
+        } else {
+            return this.setFieldClear(row,column);
+        }
     }
 
     /**
@@ -64,15 +97,20 @@ class Kakurasu {
      */
     changeFlagStatus(row,column){
         let field = this.getField(row,column);
-        let status = field.isClear() ? STATUS_FLAGGED : STATUS_CLEAR;
-        return this._setFieldStatus(row,column,status);
+        if(field.isClear()){
+            return this.setFieldFlagged(row,column);
+        } else {
+            return this.setFieldClear(row,column);
+        }
     }
 
     _setFieldStatus(row,column, status){
+        let field = this.getField(row,column);
         let move = {
             row: row,
             column: column,
-            status: status
+            previousStatus: field.getStatus(),
+            nextStatus: status
         }
         return this._makeMove(move);
     }
@@ -86,8 +124,11 @@ class Kakurasu {
     }
 
     _addMoveToHistory(move){
+        console.log("_addMoveToHistory");
+        console.log(move);
         this._deleteFutureMoveHistory();
         this.state.moveHistory.push(move);
+        console.log("_addMoveToHistory call _changeCurrentMoveIndex");
         this._changeCurrentMoveIndex(1);
     }
 
@@ -99,16 +140,41 @@ class Kakurasu {
     }
 
     _changeCurrentMoveIndex(diff){
-        this.state.currentMoveIndex = this.state.currentMoveIndex+diff;
-        if(this.state.currentMoveIndex<0){
-            this.state.currentMoveIndex = null;
+        console.log("_changeCurrentMoveIndex: diff: "+diff);
+        this.state.currentMoveIndex = this._calcNextCurrentMoveIndex(diff);
+    }
+
+    _calcNextCurrentMoveIndex(diff){
+        let copy = this.state.currentMoveIndex;
+        let notANumber = isNaN(parseInt(copy)); // isNaN(null) ==> false !!!
+        if(notANumber){ //0 is not an invalid index !
+            console.log("Thats not a number");
+            if(diff > 0){
+                console.log("positiv diff");
+                copy = 0;
+                diff = diff -1;
+                if(diff > 0){
+                    copy = diff;
+                }
+            }
+            //all other cases are not relevant, since we have no history
+        } else { //we have a current index
+            copy = copy+diff;
+            if(copy<0){
+                copy = null;
+            }
         }
+        return copy;
+    }
+
+    _getFieldFromMove(move){
+        return this.getField(move.row,move.column);
     }
 
     _applyMove(move){
-        let field = this.getField(move.row,move.column);
+        let field = this._getFieldFromMove(move);
         if(!field.isReadOnly()){
-            field.setStatus(move.status);
+            field.setStatus(move.nextStatus);
             return true;
         }
         return false;
@@ -133,18 +199,60 @@ class Kakurasu {
     }
 
     /**
+     * Get the field of the current move
+     * @returns {null|*}
+     */
+    getFieldOfCurrentMove(){
+        let currentMove = this.getMoveFromHistoryAsCopy(this._calcNextCurrentMoveIndex(0));
+        if(!!currentMove){
+            return this._getFieldFromMove(currentMove);
+        }
+        return null;
+    }
+
+    /**
+     * Is is possible to redo a move
+     * @returns {boolean} redo is possible at current time
+     */
+    isPossibleToRedoMove() {
+        let moveToBeRedone = this.getMoveFromHistoryAsCopy(this._calcNextCurrentMoveIndex(1));
+        return !!moveToBeRedone;
+    }
+
+    /**
      * Redo the last move if there are any moves undone
      * @returns {boolean} if change could be redone (should be always true)
      */
     redoMove(){
-        if(this.state.currentMoveIndex !== null){
-            let moveToBeRedone = JSON.parse(JSON.stringify(this.state.moveHistory[this.state.currentMoveIndex+1]));
-            if(!!moveToBeRedone){
-                this._changeCurrentMoveIndex(1);
-                return this._applyMove(moveToBeRedone);
-            }
+        console.log("redoMove");
+        if(this.isPossibleToRedoMove()){
+            let moveToBeRedone = this.getMoveFromHistoryAsCopy(this._calcNextCurrentMoveIndex(1));
+            this._changeCurrentMoveIndex(1);
+            return this._applyMove(moveToBeRedone);
         }
         return false;
+    }
+
+    /**
+     * Get a Move from the history
+     * @param moveIndex move index from the history
+     * @returns {*}
+     */
+    getMoveFromHistoryAsCopy(moveIndex){
+        let move = this.state.moveHistory[moveIndex];
+        if(!!move){
+            move = JSON.parse(JSON.stringify(move));
+        }
+        return move;
+    }
+
+    /**
+     * Is is possible to undo a move
+     * @returns {boolean} undo is possible at current time
+     */
+    isPossibleToUndoMove(){
+        let moveToBeUndone = this.getMoveFromHistoryAsCopy(this._calcNextCurrentMoveIndex(0));
+        return !!moveToBeUndone;
     }
 
     /**
@@ -152,13 +260,16 @@ class Kakurasu {
      * @returns {boolean} if a move can be undone
      */
     undoMove(){
-        if(this.state.currentMoveIndex !== null){
-            let moveToBeUndone = JSON.parse(JSON.stringify(this.state.moveHistory[this.state.currentMoveIndex]));
-            if(!!moveToBeUndone){
-                moveToBeUndone.enabled = !moveToBeUndone.enabled;
-                this._changeCurrentMoveIndex(-1);
-                return this._applyMove(moveToBeUndone);
-            }
+        console.log("undoMove");
+        console.log("this.state.currentMoveIndex: "+this.state.currentMoveIndex);
+        if(this.isPossibleToUndoMove()){
+            console.log("CurrentMoveIndex not null");
+            let moveToBeUndone = this.getMoveFromHistoryAsCopy(this._calcNextCurrentMoveIndex(0));
+            let helperNextStatus = moveToBeUndone.nextStatus;
+            moveToBeUndone.nextStatus = moveToBeUndone.previousStatus;
+            moveToBeUndone.previousStatus = helperNextStatus;
+            this._changeCurrentMoveIndex(-1);
+            return this._applyMove(moveToBeUndone);
         }
         return false;
     }
@@ -232,12 +343,6 @@ class Kakurasu {
      */
     isColumnConstraintSatisfied(column){
         return this._isRowColumnConstraintSatisfied(false, column);
-    }
-
-    _isRowColumnConstraintSatisfied(forRow, index){
-        let solutionValue = this._getConstraintValue(forRow, index);
-        let fieldsValue = this._getRowColumnSumValue(forRow, index);
-        return solutionValue===fieldsValue;
     }
 
     _isRowColumnConstraintSatisfied(forRow, index){
@@ -323,7 +428,7 @@ class Kakurasu {
 
     /**
      * Get a list of all fields in a column index
-     * @param row the index of the column
+     * @param column the index of the column
      * @returns {[]} list of KakarasuField
      */
     getFieldsInColumn(column){
@@ -501,6 +606,14 @@ class KakurasuField {
     }
 
     /**
+     * Get the field status
+     * @returns {number} 0=Clear, 1=active, 2=flagged
+     */
+    getStatus(){
+        return this.state.status;
+    }
+
+    /**
      * Is the status of a field clear
      * @returns {boolean} field is clear
      */
@@ -562,7 +675,7 @@ class KakurasuField {
 
     /**
      * get the state of the field
-     * @returns {{status: number}}
+     * @returns {{status: number},{solution: boolean},{readOnly: boolean}}
      */
     getState(){
         return this.state;
@@ -721,13 +834,22 @@ class KakurasuLevelGenerator {
 
 }
 
-/**
 console.log("Kakarasu Test");
 let game = new Kakurasu();
+console.log("Initial Field");
 console.log(game.getField(2,2));
+console.log("");
+console.log("Field set active");
 game.changeActiveStatus(2,2);
 console.log(game.getField(2,2));
- */
+console.log("");
+console.log("Undo move");
+game.undoMove();
+console.log(game.getField(2,2));
+console.log("");
+console.log("Redo move");
+game.redoMove();
+console.log(game.getField(2,2));
 
 module.exports.Kakurasu = Kakurasu;
 module.exports.KakurasuField = KakurasuField;
