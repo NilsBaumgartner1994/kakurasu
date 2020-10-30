@@ -1,6 +1,6 @@
 {
   "name": "kakurasu",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Kakurasu also known as Takuzu https://en.wikipedia.org/wiki/Takuzu",
   "main": "./lib/index.js",
   "scripts": {
