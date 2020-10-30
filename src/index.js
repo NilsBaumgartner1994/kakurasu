@@ -8,6 +8,10 @@ const STATUS_CLEAR = 0;
 const STATUS_ACTIVE = 1;
 const STATUS_FLAGGED = 2;
 
+const CLEANVALUE_MOVEHISTORY = [];
+const CLEANVALUE_CURRENTMOVEINDEX = null;
+
+
 class Kakurasu {
 
     /**
@@ -17,8 +21,8 @@ class Kakurasu {
      */
     constructor(state = {}) {
         this.state = {};
-        this.state.moveHistory = state.moveHistory || [];
-        this.state.currentMoveIndex = state.currentMoveIndex || null;
+        this.state.moveHistory = state.moveHistory || CLEANVALUE_MOVEHISTORY;
+        this.state.currentMoveIndex = state.currentMoveIndex || CLEANVALUE_CURRENTMOVEINDEX;
         if(!this.state.currentMoveIndex && this.state.moveHistory.length > 0){
             this.state.currentMoveIndex = this.state.moveHistory.length-1;
         }
@@ -42,6 +46,21 @@ class Kakurasu {
      */
     getAmountMoves(){
         return this.state.moveHistory.length;
+    }
+
+    /**
+     * Resets the game to original start
+     */
+    resetGame(){
+        let fieldKeys = Object.keys(this.state.fields);
+        for(let i=0; i<fieldKeys.length; i++){
+            let fieldKey = fieldKeys[i];
+            let field = this.state.fields[fieldKey];
+            field._reset();
+            this.state.fields[fieldKey] = field;
+        }
+        this.state.moveHistory = CLEANVALUE_MOVEHISTORY;
+        this.state.currentMoveIndex = CLEANVALUE_CURRENTMOVEINDEX;
     }
 
     /**
@@ -602,6 +621,12 @@ class KakurasuField {
      */
     constructor(state = {status: STATUS_CLEAR}) {
         this.state = state;
+    }
+
+    _reset(){
+        if(!this.isReadOnly()){
+            this.setStatus(STATUS_CLEAR);
+        }
     }
 
     /**
