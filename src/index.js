@@ -124,23 +124,29 @@ class Kakurasu {
     }
 
     _addMoveToHistory(move){
-        console.log("_addMoveToHistory");
-        console.log(move);
         this._deleteFutureMoveHistory();
         this.state.moveHistory.push(move);
-        console.log("_addMoveToHistory call _changeCurrentMoveIndex");
         this._changeCurrentMoveIndex(1);
     }
 
-    _deleteFutureMoveHistory(move){
+    _deleteFutureMoveHistory(){
         let currentIndex = this.state.currentMoveIndex;
-        if(!!currentIndex) {
-            this.state.moveHistory = this.state.moveHistory.slice(0,currentIndex);
+        if(!isNaN(parseInt(currentIndex))) {
+            let newHistory = [];
+            /**
+            for(let i=0; i<currentIndex+1; i++){
+                let moveToSave = this.state.moveHistory[i];
+                newHistory.push(moveToSave);
+            }
+            */
+            newHistory = this.state.moveHistory.slice(0,currentIndex+1);
+            this.state.moveHistory = newHistory;
+        } else {
+            this.state.moveHistory = [];
         }
     }
 
     _changeCurrentMoveIndex(diff){
-        console.log("_changeCurrentMoveIndex: diff: "+diff);
         this.state.currentMoveIndex = this._calcNextCurrentMoveIndex(diff);
     }
 
@@ -148,9 +154,7 @@ class Kakurasu {
         let copy = this.state.currentMoveIndex;
         let notANumber = isNaN(parseInt(copy)); // isNaN(null) ==> false !!!
         if(notANumber){ //0 is not an invalid index !
-            console.log("Thats not a number");
             if(diff > 0){
-                console.log("positiv diff");
                 copy = 0;
                 diff = diff -1;
                 if(diff > 0){
@@ -224,7 +228,6 @@ class Kakurasu {
      * @returns {boolean} if change could be redone (should be always true)
      */
     redoMove(){
-        console.log("redoMove");
         if(this.isPossibleToRedoMove()){
             let moveToBeRedone = this.getMoveFromHistoryAsCopy(this._calcNextCurrentMoveIndex(1));
             this._changeCurrentMoveIndex(1);
@@ -260,10 +263,7 @@ class Kakurasu {
      * @returns {boolean} if a move can be undone
      */
     undoMove(){
-        console.log("undoMove");
-        console.log("this.state.currentMoveIndex: "+this.state.currentMoveIndex);
         if(this.isPossibleToUndoMove()){
-            console.log("CurrentMoveIndex not null");
             let moveToBeUndone = this.getMoveFromHistoryAsCopy(this._calcNextCurrentMoveIndex(0));
             let helperNextStatus = moveToBeUndone.nextStatus;
             moveToBeUndone.nextStatus = moveToBeUndone.previousStatus;
@@ -562,7 +562,14 @@ class Kakurasu {
             output += (this.getWeight(row)+"").padStart(largestAmount," ")+"|";
             for(let column=0; column < columns; column++){
                 let field = this.getField(row,column);
-                let icon = field.isSolution() ? "X" : "";
+                let icon = field.isSolution() ? "" : "";
+                if(field.isActive()){
+                    icon = "A";
+                }
+                if(field.isFlagged()){
+                    icon = "x";
+                }
+
                 output += icon.padStart(largestAmount," ")+"|";
             }
             output += (this.getConstraintValueForRow(row)+"").padStart(largestAmount," ")+"\n";
@@ -834,22 +841,18 @@ class KakurasuLevelGenerator {
 
 }
 
+/**
 console.log("Kakarasu Test");
 let game = new Kakurasu();
-console.log("Initial Field");
-console.log(game.getField(2,2));
-console.log("");
-console.log("Field set active");
-game.changeActiveStatus(2,2);
-console.log(game.getField(2,2));
-console.log("");
-console.log("Undo move");
-game.undoMove();
-console.log(game.getField(2,2));
-console.log("");
-console.log("Redo move");
-game.redoMove();
-console.log(game.getField(2,2));
+game.changeActiveStatus(0,0);
+game.changeActiveStatus(0,1);
+game.changeActiveStatus(0,2);
+game.changeActiveStatus(0,3);
+game.changeActiveStatus(0,4);
+console.log("INIT");
+console.log(game.print())
+console.log("")
+*/
 
 module.exports.Kakurasu = Kakurasu;
 module.exports.KakurasuField = KakurasuField;
