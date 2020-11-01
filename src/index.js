@@ -321,20 +321,14 @@ class Kakurasu {
      */
     isGameWon(){
         let allRowsSatisfied = this._areAllRowColumnContraintsSatisfied(true);
-        if(!allRowsSatisfied){
-            return false;
-        }
         let allColumnsSatisfied = this._areAllRowColumnContraintsSatisfied(false);
-        if(!allColumnsSatisfied){
-            return false;
-        }
         return allRowsSatisfied && allColumnsSatisfied;
     }
 
     _areAllRowColumnContraintsSatisfied(forRow=false){
         let length = this._getAmountRowColumns(forRow);
         for(let i=0; i<length; i++){
-            let constraintSatisfied = this._isRowColumnConstraintSatisfied(true, i);
+            let constraintSatisfied = this._isRowColumnConstraintSatisfied(forRow, i);
             if(!constraintSatisfied){
                 return false;
             }
@@ -556,6 +550,113 @@ class Kakurasu {
         }
         return maxValue;
     }
+
+
+    /**
+     * ! CHECK if game is won before ! Checks if all fields of the predefined solution were found, otherwise
+     * an alternative solution is found.
+     * @returns {boolean}
+     */
+    isPredefinedSolutionFound(){
+        let allFields = this.getFieldsAll();
+        for(let i=0; i<allFields.length; i++){
+            let field = allFields[i];
+            if(field.isSolution()){
+                if(!field.isActive()){ //if solution field ==> must be active
+                    return false;
+                }
+            } else {
+                if(field.isActive()){ // if not solution ==> must not be active
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Get all predefined solution fields
+     * @returns {[]} list of fields for ONE game solution
+     */
+    getAllPredefinedSolutionFields(){
+        let allFields = this.getFieldsAll();
+        let solutionFields = [];
+        for(let i=0; i <allFields.length; i++){
+            let field = allFields[i];
+            if(field.isSolution()){
+                solutionFields.push(field);
+            }
+        }
+        return solutionFields;
+    }
+
+    /**
+     * Get all fields of the game
+     * @returns {[]} all fields
+     */
+    getFieldsAll(){
+        let amountRows = this.getAmountRows();
+        let allFields = [];
+        for(let row = 0; row < amountRows; row++){
+            let allRowFields = this.getFieldsInRow(row);
+            allFields = allFields.concat(allRowFields);
+        }
+        return allFields;
+    }
+
+
+    /**
+     * Get all values in a row/column which are safe part of any possible solution for this specific row constraint
+     * This does not mean, that it must be a real solution
+     * @param forRow boolean if for row
+     * @param index the rowIndex / columnIndex
+     * @returns {[]} list of all solutions which are safe
+     */
+    getAllDefinitelySolutionWeightsForRowColumn(forRow, index){
+        let solutionSubsets = this.getPossibleWeightSolutionSetsForRowColumn(forRow, index);
+        let weights = this._getAllWeightsForRowColumn(forRow, index);
+        let definitelyWeights = [];
+        if(solutionSubsets.length > 0) {
+            for (let i = 0; i < weights.length; i++) {
+                let weight = weights[i];
+                let weightInAllSolutions = true;
+                for (let j = 0; j < solutionSubsets.length && weightInAllSolutions; j++) {
+                    let solutionSubset = solutionSubsets[j];
+                    if(!solutionSubset.includes(weight)){
+                        weightInAllSolutions = false;
+                    }
+                }
+                if(weightInAllSolutions){
+                    definitelyWeights.push(weight);
+                }
+            }
+        }
+        return definitelyWeights;
+    }
+
+    _getAllWeightsForRowColumn(forRow, index){
+        let weights = [];
+        for(let i=0; i<fields.length; i++){
+            let field = fields[i];
+            let weight = this._getWeightForField(field);
+            weights.push(weight);
+        }
+        return weights;
+    }
+
+    /**
+     * Gives a subset of all possible solutions for this row/column constraint, BUT not all of them may are part of
+     * the solution for the whole game.
+     * @param forRow boolean if for row
+     * @param index the rowIndex / columnIndex
+     */
+    getPossibleWeightSolutionSetsForRowColumn(forRow, index){
+        let weights = this._getAllWeightsForRowColumn(forRow, index);
+        let constraint = this._getConstraintValue(forRow, index);
+        return MathHelper.subset_sum(weights, constraint);
+    }
+
+
 
     /**
      * DEBUGGING ! Print the field.
@@ -864,6 +965,41 @@ class KakurasuLevelGenerator {
         return a;
     }
 
+}
+
+
+class MathHelper {
+    static sum_up_recursive(numbers, target, partial) {
+        let s = 0;
+        for(let i=0; i<partial.length; i++){
+            s += partial[i];
+        }
+        if(s===target){
+            return [partial];
+        }
+        if( s >= target){
+            return null;
+        }
+        let listOfValidPartialSums = [];
+        for(let i=0; i<numbers.length; i++){
+            let remaining = [];
+            let n = numbers[i];
+            for(let j=i+1; j<numbers.length; j++){
+                remaining.push(numbers[i]);
+            }
+            let partial_rec = partial.slice(0);
+            partial_rec.push(n);
+            let listOfValidRecursivePartialSums = MathHelper.sum_up_recursive(remaining, target, partial_rec);
+            for(let j=0; i<listOfValidRecursivePartialSums.length; j++){
+                listOfValidPartialSums.push(listOfValidRecursivePartialSums[j]);
+            }
+        }
+        return listOfValidPartialSums;
+    };
+
+    static subset_sum(numbers, target) {
+        MathHelper.sum_up_recursive(numbers, target, []);
+    };
 }
 
 /**
